@@ -34,3 +34,6 @@ Shortcuts: power menu `qs -p ~/.config/quickshell/ddcoz ipc call ddcoz power`, w
 ## Requirements
 
 quickshell, awww, Hyprland, hyprlock, python + Pillow, kitty, NetworkManager, bluez, brightnessctl, wl-clipboard, upower, PipeWire, Inter and JetBrainsMono Nerd fonts.
+## License
+
+MIT

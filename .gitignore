@@ -1,0 +1,12 @@
+.env
+.env.*
+*.env
+*.key
+*.pem
+*secret*
+*token*
+settings.json
+wallpaper
+qml-backup/
+*.bak*
+*.pre-*
