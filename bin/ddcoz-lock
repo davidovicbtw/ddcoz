@@ -1,0 +1,14 @@
+#!/bin/sh
+# ddcoz lock screen (Quickshell session lock). Falls back to hyprlock if the shell isn't running.
+pgrep -x hyprlock >/dev/null && exit 0
+QS="$HOME/.config/quickshell/ddcoz"
+if qs -p "$QS" ipc call ddcoz ping >/dev/null 2>&1; then
+    exec qs -p "$QS" ipc call ddcoz lock
+fi
+CONF="$HOME/.config/ddcoz/hyprlock.conf"
+[ -f "$CONF" ] || exec hyprlock
+WALL=$(awww query 2>/dev/null | sed -n 's/.*image: //p' | head -1)
+[ -f "$WALL" ] || WALL=$(cat "$HOME/.config/ddcoz/wallpaper" 2>/dev/null | head -1)
+OUT="${XDG_RUNTIME_DIR:-/tmp}/ddcoz-hyprlock.conf"
+sed "s|__WALLPAPER__|$WALL|" "$CONF" > "$OUT"
+exec hyprlock -c "$OUT"

@@ -1,0 +1,140 @@
+#!/usr/bin/env python3
+"""ddcoz - terminal control for the ddcoz Quickshell desktop (bar, popups, launcher, notifications)."""
+import json, os, subprocess, sys
+
+HOME = os.path.expanduser("~")
+QML = f"{HOME}/.config/quickshell/ddcoz"
+CFG = f"{HOME}/.config/ddcoz/settings.json"
+
+# key: (type, default, description)
+SCHEMA = {
+    "accent":        ("str",   "#7c9cff", "accent colour (hex)"),
+    "opacity":       ("float", 0.82,      "bubble / panel opacity 0.3-1"),
+    "workspaces":    ("int",   5,         "number of workspace dots"),
+    "clock24":       ("bool",  True,      "24 hour clock"),
+    "seconds":       ("bool",  False,     "show seconds in the clock"),
+    "barHeight":     ("int",   30,        "bar height in px"),
+    "gap":           ("int",   6,         "gap between bubbles / screen edge"),
+    "radius":        ("int",   20,        "corner radius"),
+    "notifications": ("bool",  True,      "ddcoz owns notification popups (stops dunst)"),
+    "animations":    ("bool",  True,      "enable animations"),
+    "terminal":      ("str",   "kitty",   "terminal used for Settings buttons"),
+    "search":        ("str",   "https://www.google.com/search?q=", "launcher web search (google|ddg|brave|kagi|bing or a url ending in q=)"),
+}
+
+def load():
+    try:
+        with open(CFG) as f: return json.load(f)
+    except Exception: return {}
+
+def save(d):
+    os.makedirs(os.path.dirname(CFG), exist_ok=True)
+    with open(CFG, "w") as f: json.dump(d, f, indent=2)
+
+ENGINES = {"google": "https://www.google.com/search?q=", "ddg": "https://duckduckgo.com/?q=", "brave": "https://search.brave.com/search?q=", "kagi": "https://kagi.com/search?q=", "bing": "https://www.bing.com/search?q="}
+
+def conv(key, val):
+    if key == "search": return ENGINES.get(val.lower(), val)
+    t = SCHEMA[key][0]
+    if t == "bool":
+        if val.lower() in ("1", "true", "on", "yes"): return True
+        if val.lower() in ("0", "false", "off", "no"): return False
+        raise ValueError(f"{key}: expected on/off")
+    return {"int": int, "float": float, "str": str}[t](val)
+
+def qs(*a, quiet=False):
+    r = subprocess.run(["qs", "-p", QML, *a], capture_output=True, text=True)
+    if not quiet and (r.stdout or r.stderr): print((r.stdout + r.stderr).strip())
+    return r
+
+def running():
+    return qs("ipc", "call", "ddcoz", "ping", quiet=True).stdout.strip() == "pong"
+
+def cmd_run(args):
+    if running() and "--replace" not in args:
+        print("ddcoz already running"); return
+    if "--replace" in args: qs("kill", quiet=True)
+    if load().get("notifications", True):
+        subprocess.run(["systemctl", "--user", "stop", "dunst"], capture_output=True)
+    subprocess.Popen(["qs", "-d", "-n", "-p", QML], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    print("ddcoz started")
+
+def cmd_stop(_):
+    qs("kill", quiet=True); print("ddcoz stopped")
+
+def cmd_restart(_):
+    cmd_stop(_); import time; time.sleep(0.6); cmd_run([])
+
+def cmd_status(_):
+    print("running" if running() else "stopped")
+
+def cmd_set(args):
+    d = load()
+    for a in args:
+        if "=" not in a: sys.exit("usage: ddcoz set key=value ...")
+        k, v = a.split("=", 1)
+        if k not in SCHEMA: sys.exit(f"unknown key '{k}' (see: ddcoz list)")
+        try: d[k] = conv(k, v)
+        except ValueError as e: sys.exit(str(e))
+        print(f"{k} = {d[k]}")
+    save(d)
+
+def cmd_get(args):
+    d = load()
+    for k in (args or SCHEMA):
+        if k not in SCHEMA: sys.exit(f"unknown key '{k}'")
+        print(f"{k} = {d.get(k, SCHEMA[k][1])}")
+
+def cmd_list(_):
+    d = load()
+    for k, (t, default, desc) in SCHEMA.items():
+        cur = d.get(k, default)
+        print(f"{k:14} {str(cur):10} {t:6} {desc}" + ("" if k not in d else "  *"))
+    print("\n* = overridden (default via `ddcoz reset <key>`)")
+
+def cmd_reset(args):
+    d = load()
+    for k in (args or list(d)): d.pop(k, None)
+    save(d); print("reset")
+
+POPUPS = ["wifi", "bt", "vol", "bat", "clock", "media", "power"]
+
+def cmd_popup(args):
+    name = args[0] if args else ""
+    if name and name not in POPUPS: sys.exit("popups: " + ", ".join(POPUPS))
+    qs("ipc", "call", "ddcoz", "popup", name)
+
+def cmd_launcher(a):
+    if a: qs("ipc", "call", "ddcoz", "search", " ".join(a))
+    else: qs("ipc", "call", "ddcoz", "launcher")
+def cmd_lock(_): os.execvp(f"{HOME}/.local/bin/ddcoz-lock", ["ddcoz-lock"])
+
+def cmd_log(_):
+    r = subprocess.run(["qs", "-p", QML, "log", "-t", "80"], capture_output=True, text=True)
+    print(r.stdout or r.stderr)
+
+CMDS = {
+    "run": (cmd_run, "start the shell (--replace to restart)"),
+    "stop": (cmd_stop, "stop the shell"),
+    "restart": (cmd_restart, "restart the shell"),
+    "status": (cmd_status, "running / stopped"),
+    "launcher": (cmd_launcher, "toggle the launcher, or `ddcoz launcher <text>` to open it with a query"),
+    "popup": (cmd_popup, "toggle a popup: " + ", ".join(POPUPS) + " (no arg closes)"),
+    "lock": (cmd_lock, "lock the screen"),
+    "set": (cmd_set, "set key=value [key=value ...]"),
+    "get": (cmd_get, "show setting(s)"),
+    "list": (cmd_list, "list all settings"),
+    "reset": (cmd_reset, "reset setting(s) (all if none given)"),
+    "log": (cmd_log, "recent shell log"),
+}
+
+def main():
+    a = sys.argv[1:]
+    if not a or a[0] in ("-h", "--help", "help"):
+        print("ddcoz - bar / popups / launcher / notifications\n")
+        for k, (_, h) in CMDS.items(): print(f"  {k:9} {h}")
+        return
+    if a[0] not in CMDS: sys.exit(f"unknown command '{a[0]}' (ddcoz help)")
+    CMDS[a[0]][0](a[1:])
+
+main()

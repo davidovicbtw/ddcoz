@@ -1,0 +1,7 @@
+#!/bin/sh
+# start awww daemon (if needed) and restore last wallpaper
+pgrep -x awww-daemon >/dev/null || { awww-daemon >/dev/null 2>&1 & }
+for i in 1 2 3 4 5 6 7 8 9 10; do awww query >/dev/null 2>&1 && break; sleep 0.5; done
+f="$(cat "$HOME/.config/ddcoz/wallpaper" 2>/dev/null)"
+[ -f "$f" ] || f="$(ls "$HOME"/Pictures/Wallpapers/* 2>/dev/null | head -1)"
+[ -f "$f" ] && awww img "$f" --transition-type none
