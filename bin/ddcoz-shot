@@ -1,0 +1,35 @@
+#!/bin/sh
+# One press: region screenshot (select with the mouse). Two quick presses: start screen recording.
+# Press again while recording to stop.
+RT="${XDG_RUNTIME_DIR:-/tmp}"
+PEND="$RT/ddcoz-shot.pending"
+DBL="$RT/ddcoz-shot.double"
+SHOTS="$HOME/Pictures/Screenshots"
+RECS="$HOME/Videos/Recordings"
+
+if pgrep -x gpu-screen-recorder >/dev/null; then
+    pkill -SIGINT -x gpu-screen-recorder
+    notify-send -a ddcoz "Recording saved" "$RECS"
+    exit 0
+fi
+
+if [ -e "$PEND" ]; then touch "$DBL"; exit 0; fi
+touch "$PEND"
+sleep 0.35
+if [ -e "$DBL" ]; then
+    rm -f "$PEND" "$DBL"
+    mkdir -p "$RECS"
+    MON=$(hyprctl monitors -j | python3 -c 'import sys,json; print(next(m["name"] for m in json.load(sys.stdin) if m.get("focused")))')
+    notify-send -a ddcoz "Recording started" "press the key again to stop"
+    STATE="$RT/ddcoz-rec"
+    date +%s > "$STATE"
+    gpu-screen-recorder -w "$MON" -f 60 -a default_output -o "$RECS/rec-$(date +%Y%m%d-%H%M%S).mp4"
+    rm -f "$STATE"
+    exit 0
+fi
+rm -f "$PEND"
+mkdir -p "$SHOTS"
+GEO=$(slurp -d) || exit 0
+[ -n "$GEO" ] || exit 0
+F="$SHOTS/shot-$(date +%Y%m%d-%H%M%S).png"
+grim -g "$GEO" "$F" && wl-copy < "$F" && notify-send -a ddcoz "Screenshot copied" "$F"

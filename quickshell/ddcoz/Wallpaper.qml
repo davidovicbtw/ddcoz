@@ -104,7 +104,7 @@ PanelWindow {
     Item {
         anchors.fill: parent
         opacity: win.shown ? 1 : 0
-        transform: Translate { y: win.shown ? 0 : 30; Behavior on y { NumberAnimation { duration: Theme.durSlow; easing.type: Easing.OutCubic } } }
+        transform: Translate { y: win.shown ? 0 : 12; Behavior on y { NumberAnimation { duration: Theme.durSlow; easing.type: Easing.OutCubic } } }
         Behavior on opacity { NumberAnimation { duration: Theme.dur } }
 
         Text {

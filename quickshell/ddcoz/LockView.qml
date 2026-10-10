@@ -34,6 +34,9 @@ Item {
     function leave() { if (leaving) return; leaving = true; shown = false; leaveTimer.restart(); }
     Timer { id: leaveTimer; interval: 1050; onTriggered: root.gone() }
     property real kick: 0
+    // 0 -> 1 on show, back on leave; drives the blur-in of the clock and password area
+    property real appear: shown ? 1 : 0
+    Behavior on appear { NumberAnimation { duration: root.shown ? 1300 : 450; easing.type: root.shown ? Easing.OutCubic : Easing.InCubic } }
     onPasswordChanged: if (password.length > 0) kickAnim.restart()
     SequentialAnimation {
         id: kickAnim
@@ -129,6 +132,13 @@ Item {
         anchors.verticalCenterOffset: -40
         width: 560; height: 520
 
+        layer.enabled: root.appear < 1
+        layer.effect: MultiEffect {
+            blurEnabled: true
+            blurMax: 48
+            blur: 1 - root.appear
+        }
+
         // accent bar grows downward
         Reveal {
             id: barR
@@ -208,6 +218,13 @@ Item {
         anchors.bottomMargin: 64
         width: 300; height: 110
 
+        layer.enabled: root.appear < 1
+        layer.effect: MultiEffect {
+            blurEnabled: true
+            blurMax: 48
+            blur: 1 - root.appear
+        }
+
         Reveal {
             id: greetR
             delay: 800; dur: 900
@@ -230,7 +247,9 @@ Item {
             // dots
             Row {
                 id: dots
-                anchors.centerIn: parent
+                x: (pwBox.width - width) / 2
+                y: (pwBox.height - height) / 2
+                Behavior on x { NumberAnimation { duration: 180; easing.type: Easing.OutCubic } }
                 spacing: 9
                 Repeater {
                     model: root.password.length

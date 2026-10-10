@@ -11,12 +11,21 @@ Singleton {
     property bool powermenu: false
     property bool wallpaper: false
     property string wallQuery: ""
+    property bool clipboard: false
+    // OSD: kind is "vol" | "bright"; shown for a moment after each change
+    property string osdKind: "vol"
+    property real osdValue: 0
+    property bool osdMuted: false
+    signal osd()
+    function showOsd(kind, value, muted) { osdKind = kind; osdValue = value; osdMuted = !!muted; osd(); }
     property rect logoRect: Qt.rect(6, 3, 24, 24)
     signal request(string name)
     property string query: ""
 
+    function closeAll() { popup = ""; launcher = false; powermenu = false; wallpaper = false; clipboard = false; }
+    function toggleClipboard() { const v = !clipboard; closeAll(); clipboard = v; }
     function toggle(name, rect, screen) {
-        launcher = false; powermenu = false; wallpaper = false;
+        launcher = false; powermenu = false; wallpaper = false; clipboard = false;
         if (popup === name && screenName === screen) { popup = ""; return; }
         origin = rect;
         screenName = screen;

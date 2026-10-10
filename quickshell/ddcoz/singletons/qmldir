@@ -5,3 +5,4 @@ singleton Net Net.qml
 singleton Audio Audio.qml
 singleton Brightness Brightness.qml
 singleton Sys Sys.qml
+singleton Notifs Notifs.qml

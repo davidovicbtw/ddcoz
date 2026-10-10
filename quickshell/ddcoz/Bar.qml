@@ -25,7 +25,7 @@ PanelWindow {
     Binding { target: Ui; property: "logoRect"; value: Qt.rect(Theme.gap, (Theme.barH - Theme.pillH) / 2, Theme.pillH, Theme.pillH) }
     SystemClock { id: clock; precision: Config.seconds ? SystemClock.Seconds : SystemClock.Minutes }
 
-    function pillFor(n) { return n === "clock" ? clockPill : n === "media" ? mediaPill : n === "power" ? powerPill : statusPill; }
+    function pillFor(n) { return n === "clock" ? clockPill : n === "media" ? mediaPill : n === "power" ? powerPill : n === "notif" ? notifPill : statusPill; }
     Connections {
         target: Ui
         function onRequest(name) { if (win.modelData === Quickshell.screens[0]) win.pop(name, win.pillFor(name)); }
@@ -55,7 +55,7 @@ PanelWindow {
         BatPanel { screenName: win.sname }
         ClockPanel { screenName: win.sname }
         MediaPanel { screenName: win.sname }
-        PowerPanel { screenName: win.sname }
+        NotifPanel { screenName: win.sname }
 
         // ---- left ----
         Row {
@@ -96,6 +96,19 @@ PanelWindow {
                     }
                 }
             }
+            Pill {
+                readonly property string t: Hyprland.activeToplevel ? Hyprland.activeToplevel.title : ""
+                visible: t !== ""
+                pad: 12
+                Text {
+                    height: parent.height
+                    verticalAlignment: Text.AlignVCenter
+                    width: Math.min(implicitWidth, 300)
+                    text: parent.parent.t
+                    elide: Text.ElideRight
+                    color: Theme.dim; font.family: Theme.font; font.pixelSize: 12; font.weight: Font.Medium
+                }
+            }
         }
 
         // ---- center ----
@@ -105,8 +118,37 @@ PanelWindow {
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.top: parent.top
             anchors.topMargin: (Theme.barH - Theme.pillH) / 2
+            Item {
+                id: recBtn
+                visible: Sys.recording
+                width: visible ? recLbl.implicitWidth + 24 : 0
+                height: Theme.pillH
+                Row {
+                    anchors.centerIn: parent
+                    spacing: 7
+                    Rectangle {
+                        width: 9; height: 9; radius: 5; anchors.verticalCenter: parent.verticalCenter
+                        color: Theme.danger
+                        visible: !recMa.containsMouse
+                        SequentialAnimation on opacity {
+                            running: Sys.recording; loops: Animation.Infinite
+                            NumberAnimation { to: 0.25; duration: 700 }
+                            NumberAnimation { to: 1; duration: 700 }
+                        }
+                    }
+                    Text {
+                        id: recLbl
+                        anchors.verticalCenter: parent.verticalCenter
+                        text: recMa.containsMouse ? "\u25A0  Stop & Save" : "REC  " + Sys.recTime
+                        color: recMa.containsMouse ? Theme.danger : Theme.fg
+                        font.family: Theme.font; font.pixelSize: 13; font.weight: Font.DemiBold
+                    }
+                }
+                MouseArea { id: recMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: Sys.stopRec() }
+            }
             IconBtn {
                 id: clockBtn
+                visible: !Sys.recording
                 active: Ui.popup === "clock" && Ui.screenName === win.sname
                 label: (Config.seconds ? Qt.formatDateTime(clock.date, Config.clock24 ? "HH:mm:ss" : "h:mm:ss AP") : Qt.formatDateTime(clock.date, Config.clock24 ? "HH:mm" : "h:mm AP"))
                        + "  ·  " + Qt.formatDateTime(clock.date, "ddd d MMM")
@@ -139,9 +181,11 @@ PanelWindow {
             anchors { right: parent.right; rightMargin: Theme.gap; top: parent.top; topMargin: (Theme.barH - Theme.pillH) / 2 }
             spacing: Theme.gap
             Pill {
-                visible: SystemTray.items.values.length > 0
+                id: trayPill
+                readonly property var shown: SystemTray.items.values.filter(i => !/nm-applet|network ?manager/i.test((i.id || "") + " " + (i.title || "")))
+                visible: shown.length > 0
                 Repeater {
-                    model: SystemTray.items
+                    model: trayPill.shown
                     delegate: Item {
                         id: ti
                         required property var modelData
@@ -158,6 +202,18 @@ PanelWindow {
                             }
                         }
                     }
+                }
+            }
+            Pill {
+                id: notifPill
+                IconBtn {
+                    icon: Notifs.dnd ? "\uf1f6" : "\uf0f3"
+                    size: 12
+                    label: Notifs.unread > 0 ? String(Notifs.unread) : ""
+                    color: Notifs.dnd ? Theme.dim : Theme.fg
+                    active: Ui.popup === "notif" && Ui.screenName === win.sname
+                    onClicked: win.pop("notif", notifPill)
+                    onRightClicked: Notifs.dnd = !Notifs.dnd
                 }
             }
             Pill {

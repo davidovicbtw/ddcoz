@@ -20,6 +20,8 @@ ShellRoot {
         }
     }
     Lock { id: lockScreen }
+    Osd {}
+    Clipboard {}
     Loader { active: Config.notifications; source: "Toasts.qml" }
 
     IpcHandler {
@@ -33,6 +35,10 @@ ShellRoot {
         }
         function lock(): void { lockScreen.lockNow(); }
         function lockdemo(): void { lockScreen.showDemo(); }
+        function clipboard(): void { Ui.toggleClipboard(); }
+        function osd(kind: string): void {
+            if (kind === "bright") { Brightness.refresh(); Brightness.osdPending = true; }
+        }
         function power(): void { Ui.togglePower(); }
         function wallpaper(): void { Ui.wallQuery = ""; Ui.toggleWallpaper(); }
         function wallsearch(text: string): void { Ui.wallQuery = text; Ui.wallpaper = false; Ui.togglePowerOff(); Ui.wallpaper = true; }

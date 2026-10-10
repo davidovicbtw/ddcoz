@@ -15,12 +15,14 @@ Item {
 
     implicitWidth: Math.max(Theme.pillH - 2, contentRow.implicitWidth + 12)
     implicitHeight: Theme.pillH - 2
+    y: 0
     height: implicitHeight
     scale: ma.pressed ? 0.92 : 1
     Behavior on scale { NumberAnimation { duration: 120; easing.type: Easing.OutCubic } }
 
     Rectangle {
         anchors.fill: parent
+        anchors.topMargin: 0
         radius: height / 2
         color: b.active ? Qt.rgba(1, 1, 1, 0.18) : ma.containsMouse && !b.flat ? Theme.cardHover : "transparent"
         Behavior on color { ColorAnimation { duration: 140 } }
@@ -32,6 +34,8 @@ Item {
         Text {
             visible: b.icon !== ""
             anchors.verticalCenter: parent.verticalCenter
+            height: b.height
+            verticalAlignment: Text.AlignVCenter
             text: b.icon
             color: b.color
             font.family: Theme.icons
@@ -40,6 +44,8 @@ Item {
         Text {
             visible: b.label !== ""
             anchors.verticalCenter: parent.verticalCenter
+            height: b.height
+            verticalAlignment: Text.AlignVCenter
             text: b.label
             color: b.color
             font.family: Theme.font

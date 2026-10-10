@@ -97,7 +97,7 @@ def cmd_reset(args):
     for k in (args or list(d)): d.pop(k, None)
     save(d); print("reset")
 
-POPUPS = ["wifi", "bt", "vol", "bat", "clock", "media", "power"]
+POPUPS = ["wifi", "bt", "vol", "bat", "clock", "media", "power", "notif"]
 
 def cmd_popup(args):
     name = args[0] if args else ""
@@ -107,6 +107,8 @@ def cmd_popup(args):
 def cmd_launcher(a):
     if a: qs("ipc", "call", "ddcoz", "search", " ".join(a))
     else: qs("ipc", "call", "ddcoz", "launcher")
+def cmd_clipboard(_): qs("ipc", "call", "ddcoz", "clipboard")
+def cmd_osd(a): qs("ipc", "call", "ddcoz", "osd", a[0] if a else "bright")
 def cmd_lock(_): os.execvp(f"{HOME}/.local/bin/ddcoz-lock", ["ddcoz-lock"])
 
 def cmd_log(_):
@@ -120,6 +122,8 @@ CMDS = {
     "status": (cmd_status, "running / stopped"),
     "launcher": (cmd_launcher, "toggle the launcher, or `ddcoz launcher <text>` to open it with a query"),
     "popup": (cmd_popup, "toggle a popup: " + ", ".join(POPUPS) + " (no arg closes)"),
+    "clipboard": (cmd_clipboard, "toggle clipboard history"),
+    "osd": (cmd_osd, "show the OSD for `bright` after an external change"),
     "lock": (cmd_lock, "lock the screen"),
     "set": (cmd_set, "set key=value [key=value ...]"),
     "get": (cmd_get, "show setting(s)"),

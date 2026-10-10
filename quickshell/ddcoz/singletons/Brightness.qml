@@ -7,12 +7,15 @@ Singleton {
     id: root
     property real value: 1
     property bool available: false
+    property bool osdPending: false
 
     function set(v) {
         value = Math.max(0.02, Math.min(1, v));
         setProc.command = ["brightnessctl", "-q", "set", Math.round(value * 100) + "%"];
         setProc.running = true;
+        Ui.showOsd("bright", value);
     }
+    function refresh() { getProc.running = true; }
     Process {
         id: getProc
         command: ["brightnessctl", "-m"]
@@ -20,7 +23,7 @@ Singleton {
         stdout: StdioCollector {
             onStreamFinished: {
                 const f = text.trim().split(",");
-                if (f.length >= 4) { root.available = true; root.value = parseInt(f[3]) / 100; }
+                if (f.length >= 4) { root.available = true; root.value = parseInt(f[3]) / 100; if (root.osdPending) { root.osdPending = false; Ui.showOsd("bright", root.value); } }
             }
         }
     }

@@ -19,6 +19,6 @@ Singleton {
     readonly property int pillH: Config.barHeight - 6
     readonly property int gap: Config.gap
     readonly property int radius: Config.radius
-    readonly property int dur: Config.animations ? 220 : 0
-    readonly property int durSlow: Config.animations ? 380 : 0
+    readonly property int dur: Config.animations ? 160 : 0
+    readonly property int durSlow: Config.animations ? 240 : 0
 }

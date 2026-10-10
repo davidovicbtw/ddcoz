@@ -78,9 +78,9 @@ PanelWindow {
             anchors.centerIn: parent
             spacing: 44
             opacity: win.shown ? 1 : 0
-            scale: win.shown ? 1 : 0.94
+            scale: win.shown ? 1 : 0.97
             Behavior on opacity { NumberAnimation { duration: Theme.dur } }
-            Behavior on scale { NumberAnimation { duration: Theme.durSlow; easing.type: Easing.OutBack; easing.overshoot: 0.8 } }
+            Behavior on scale { NumberAnimation { duration: Theme.durSlow; easing.type: Easing.OutCubic } }
 
             Row {
                 id: row

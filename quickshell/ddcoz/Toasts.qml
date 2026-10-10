@@ -15,26 +15,18 @@ PanelWindow {
     color: "transparent"
     WlrLayershell.namespace: "ddcoz-toasts"
     WlrLayershell.layer: WlrLayer.Overlay
-    mask: Region { item: list.count > 0 ? list : null }
+    mask: Region { item: list.count > 0 && Ui.popup === "" ? list : null }
     visible: Config.notifications
-
-    NotificationServer {
-        id: server
-        keepOnReload: false
-        actionsSupported: true
-        bodySupported: true
-        bodyMarkupSupported: true
-        imageSupported: true
-        onNotification: n => { n.tracked = true; }
-    }
 
     ListView {
         id: list
+        opacity: Ui.popup === "" ? 1 : 0
+        Behavior on opacity { NumberAnimation { duration: 120 } }
         width: 364
         height: contentHeight
         spacing: 8
         interactive: false
-        model: server.trackedNotifications
+        model: Notifs.server.trackedNotifications
         verticalLayoutDirection: ListView.TopToBottom
         add: Transition {
             ParallelAnimation {

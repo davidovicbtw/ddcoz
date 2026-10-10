@@ -6,9 +6,10 @@ cd "$(dirname "$0")"
 QS_DIR="$HOME/.config/quickshell/ddcoz"
 CFG_DIR="$HOME/.config/ddcoz"
 BIN_DIR="$HOME/.local/bin"
-BINS=(ddcoz ddcoz-lock ddcoz-wallcolors ddcoz-wallpaper-restore)
+BINS=(ddcoz ddcoz-lock ddcoz-wallcolors ddcoz-wallpaper-restore ddcoz-shot)
 PKGS=(quickshell awww hyprland hyprlock python python-pillow kitty networkmanager bluez-utils
-      brightnessctl wl-clipboard xdg-utils upower pipewire inter-font ttf-jetbrains-mono-nerd)
+      brightnessctl wl-clipboard cliphist fd grim slurp libnotify power-profiles-daemon
+      xdg-utils upower pipewire inter-font ttf-jetbrains-mono-nerd)
 
 say() { printf '\033[1;34m::\033[0m %s\n' "$*"; }
 
@@ -57,12 +58,16 @@ Done. Add this to your Hyprland config to autostart it:
     exec-once = ~/.local/bin/ddcoz-wallpaper-restore
     bind = SUPER, Space, exec, ~/.local/bin/ddcoz launcher
     bind = SUPER, L, exec, ~/.local/bin/ddcoz-lock
+    bind = SUPER, V, exec, qs -p ~/.config/quickshell/ddcoz ipc call ddcoz clipboard
+    exec-once = wl-paste --watch cliphist store
 
   lua config:
     hl.exec_cmd(os.getenv("HOME") .. "/.local/bin/ddcoz run --replace")
     hl.exec_cmd(os.getenv("HOME") .. "/.local/bin/ddcoz-wallpaper-restore")
     hl.bind("SUPER + Space", hl.dsp.exec_cmd(os.getenv("HOME") .. "/.local/bin/ddcoz launcher"))
     hl.bind("SUPER + L", hl.dsp.exec_cmd(os.getenv("HOME") .. "/.local/bin/ddcoz-lock"))
+    hl.bind("SUPER + V", hl.dsp.exec_cmd("qs -p ~/.config/quickshell/ddcoz ipc call ddcoz clipboard"))
+    hl.exec_cmd("wl-paste --watch cliphist store")
 
 Put wallpapers in ~/Pictures/Wallpapers, then start it with: ddcoz run
 MSG

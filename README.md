@@ -3,7 +3,9 @@
 A dark, bubble-style desktop shell for Hyprland, built with [Quickshell](https://quickshell.org).
 
 - floating bubble bar with popups that grow out of the pills (wifi, bluetooth, volume, battery, clock, media)
-- launcher with web search, notifications
+- launcher: fuzzy + frecency app search, open-window switching, math, files, web; `c ` clipboard, `w ` wallpapers, `>` shell
+- notification centre with history and do-not-disturb, volume/brightness OSD, clipboard history (cliphist)
+- screenshot (region) and screen recording via `ddcoz-shot`
 - fullscreen power menu and wallpaper carousel with search and colour filters
 - animated session lock screen (PAM), hyprlock fallback
 - `ddcoz` CLI for settings and control
@@ -33,7 +35,7 @@ Shortcuts: power menu `qs -p ~/.config/quickshell/ddcoz ipc call ddcoz power`, w
 
 ## Requirements
 
-quickshell, awww, Hyprland, hyprlock, python + Pillow, kitty, NetworkManager, bluez, brightnessctl, wl-clipboard, upower, PipeWire, Inter and JetBrainsMono Nerd fonts.
+quickshell, awww, Hyprland, hyprlock, python + Pillow, kitty, NetworkManager, bluez, brightnessctl, wl-clipboard, cliphist, fd, grim, slurp, libnotify, power-profiles-daemon, upower, PipeWire, Inter and JetBrainsMono Nerd fonts.
 ## License
 
 MIT

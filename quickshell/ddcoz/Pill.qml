@@ -12,23 +12,13 @@ Rectangle {
     implicitHeight: Theme.pillH
     height: Theme.pillH
     radius: height / 2
-    color: open ? "transparent" : Theme.bg
+    color: Theme.bg
     border.width: 1
-    border.color: open ? "transparent" : Theme.border
-    Behavior on color { ColorAnimation { duration: pill.open ? 0 : Theme.durSlow } }
-    Behavior on border.color { ColorAnimation { duration: pill.open ? 0 : Theme.durSlow } }
+    border.color: Theme.border
     Row {
         id: row
         anchors.centerIn: parent
         spacing: pill.spacing
-        height: parent.height
-        enabled: !pill.open
-        opacity: pill.open ? 0 : 1
-        Behavior on opacity {
-            SequentialAnimation {
-                PauseAnimation { duration: pill.open ? 0 : Theme.durSlow * 0.55 }
-                NumberAnimation { duration: pill.open ? 90 : Theme.dur }
-            }
-        }
+        height: parent.height - 2
     }
 }
