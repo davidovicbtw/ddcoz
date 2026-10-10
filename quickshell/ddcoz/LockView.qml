@@ -36,13 +36,12 @@ Item {
     property real kick: 0
     // 0 -> 1 on show, back on leave; drives the blur-in of the clock and password area
     property real appear: shown ? 1 : 0
-    Behavior on appear { NumberAnimation { duration: root.shown ? 1300 : 450; easing.type: root.shown ? Easing.OutCubic : Easing.InCubic } }
-    onPasswordChanged: if (password.length > 0) kickAnim.restart()
-    SequentialAnimation {
-        id: kickAnim
-        NumberAnimation { target: root; property: "kick"; to: 1; duration: 70; easing.type: Easing.OutQuad }
-        NumberAnimation { target: root; property: "kick"; to: 0; duration: 380; easing.type: Easing.OutCubic }
-    }
+    Behavior on appear { NumberAnimation { duration: root.shown ? 900 : 450; easing.type: root.shown ? Easing.OutCubic : Easing.InCubic } }
+    // Typing never interrupts an animation: keys just add dots. Once typing pauses, the field plays one
+    // zoom-out pulse (kick 1 -> 0). Fast typists see it after they stop; a running pulse is never restarted.
+    onPasswordChanged: if (password.length > 0) typeIdle.restart()
+    Timer { id: typeIdle; interval: 220; onTriggered: if (!pulse.running) pulse.start() }
+    NumberAnimation { id: pulse; target: root; property: "kick"; from: 1; to: 0; duration: 480; easing.type: Easing.OutCubic }
     Timer { id: failTimer; interval: 1800; onTriggered: root.failed = false }
 
     readonly property string greeting: {
@@ -68,12 +67,12 @@ Item {
     component Reveal: Item {
         id: rv
         property int delay: 0
-        property int dur: 750
+        property int dur: 560
         property real k: root.shown ? 1 : 0
         Behavior on k {
             SequentialAnimation {
                 PauseAnimation { duration: root.shown ? rv.delay : 0 }
-                NumberAnimation { duration: root.shown ? rv.dur : 380; easing.type: root.shown ? Easing.OutBack : Easing.InCubic; easing.overshoot: 1.25 }
+                NumberAnimation { duration: root.shown ? rv.dur : 380; easing.type: root.shown ? Easing.OutBack : Easing.InCubic; easing.overshoot: 0.7 }
             }
         }
     }
@@ -100,7 +99,7 @@ Item {
             blurEnabled: true
             blurMax: 64
             property real p: root.shown ? 1 : 0
-            Behavior on p { NumberAnimation { duration: root.shown ? 1100 : 950; easing.type: root.shown ? Easing.OutCubic : Easing.InOutCubic } }
+            Behavior on p { NumberAnimation { duration: root.shown ? 800 : 800; easing.type: root.shown ? Easing.OutCubic : Easing.InOutCubic } }
             blur: p
             brightness: -0.22 * p
             saturation: 0.1 * p
@@ -142,7 +141,7 @@ Item {
         // accent bar grows downward
         Reveal {
             id: barR
-            delay: 120; dur: 800
+            delay: 80; dur: 600
             Rectangle {
                 x: 0; y: 6
                 width: 3; height: 150 * Math.min(1, barR.k)
@@ -153,7 +152,7 @@ Item {
 
         Reveal {
             id: dateR
-            delay: 250; dur: 900
+            delay: 160; dur: 650
             Text {
                 x: 28; y: 2 + (1 - Math.min(1, dateR.k)) * -14
                 opacity: Math.max(0, Math.min(1, dateR.k)) * 0.65
@@ -174,7 +173,7 @@ Item {
             width: px * 0.62; height: px * 1.05
             Reveal {
                 id: r
-                delay: dg.delay; dur: 1000
+                delay: dg.delay; dur: 700
             }
             property string shownCh: ch
             onChChanged: roll.restart()
@@ -199,14 +198,14 @@ Item {
         Row {
             x: 22; y: 30
             spacing: 4
-            Digit { ch: Qt.formatDateTime(root.now, "HH")[0]; delay: 300 }
-            Digit { ch: Qt.formatDateTime(root.now, "HH")[1]; delay: 400 }
+            Digit { ch: Qt.formatDateTime(root.now, "HH")[0]; delay: 200 }
+            Digit { ch: Qt.formatDateTime(root.now, "HH")[1]; delay: 260 }
         }
         Row {
             x: 22; y: 250
             spacing: 4
-            Digit { ch: Qt.formatDateTime(root.now, "mm")[0]; delay: 520; strength: 0.34 }
-            Digit { ch: Qt.formatDateTime(root.now, "mm")[1]; delay: 620; strength: 0.34 }
+            Digit { ch: Qt.formatDateTime(root.now, "mm")[0]; delay: 340; strength: 0.34 }
+            Digit { ch: Qt.formatDateTime(root.now, "mm")[1]; delay: 400; strength: 0.34 }
         }
     }
 
@@ -227,7 +226,7 @@ Item {
 
         Reveal {
             id: greetR
-            delay: 800; dur: 900
+            delay: 480; dur: 650
             Text {
                 x: (pw.width - width) / 2
                 y: 8 + (1 - Math.min(1, greetR.k)) * 16
@@ -243,13 +242,15 @@ Item {
             anchors.horizontalCenter: parent.horizontalCenter
             y: 40
             width: parent.width; height: 44
+            transformOrigin: Item.Center
+            scale: 1 + 0.07 * root.kick
 
             // dots
             Row {
                 id: dots
                 x: (pwBox.width - width) / 2
                 y: (pwBox.height - height) / 2
-                Behavior on x { NumberAnimation { duration: 180; easing.type: Easing.OutCubic } }
+                Behavior on x { NumberAnimation { duration: 120; easing.type: Easing.OutCubic } }
                 spacing: 9
                 Repeater {
                     model: root.password.length
@@ -258,11 +259,11 @@ Item {
                         width: 9; height: 9
                         property real k: 0
                         Component.onCompleted: k = 1
-                        Behavior on k { NumberAnimation { duration: 320; easing.type: Easing.OutCubic } }
+                        Behavior on k { NumberAnimation { duration: 150; easing.type: Easing.OutCubic } }
                         // new dot fades in while sliding from the right
                         Rectangle {
                             width: 9; height: 9; radius: 5
-                            x: (1 - dot.k) * 18
+                            scale: 0.5 + 0.5 * dot.k
                             opacity: dot.k
                             color: root.failed ? "#ff8a8a" : "white"
                             Behavior on color { ColorAnimation { duration: 200 } }
@@ -283,7 +284,7 @@ Item {
             // underline: grows from the centre, glows while typing, shakes on failure
             Reveal {
                 id: lineR
-                delay: 700; dur: 900
+                delay: 420; dur: 650
                 Rectangle {
                     id: line
                     x: (pwBox.width - width) / 2 + shakeX

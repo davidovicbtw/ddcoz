@@ -32,8 +32,8 @@ Singleton {
             property int workspaces: 5
             property bool clock24: true
             property bool seconds: false
-            property int barHeight: 30
-            property int gap: 6
+            property int barHeight: 44
+            property int gap: 8
             property int radius: 20
             property bool notifications: true
             property bool animations: true
