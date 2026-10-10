@@ -5,17 +5,15 @@ Item {
     id: b
     property string icon: ""
     property string label: ""
-    property string sub: ""
     property color color: Theme.fg
     property real size: 12
     property bool active: false
     property bool flat: false
-    readonly property color tint: active ? Theme.accent : color
     signal clicked()
     signal rightClicked()
     signal wheel(int dy)
 
-    implicitWidth: Math.max(Theme.pillH - 2, contentRow.implicitWidth + 18)
+    implicitWidth: Math.max(Theme.pillH - 2, contentRow.implicitWidth + 12)
     implicitHeight: Theme.pillH - 2
     y: 0
     height: implicitHeight
@@ -26,7 +24,7 @@ Item {
         anchors.fill: parent
         anchors.topMargin: 0
         radius: height / 2
-        color: b.active ? Qt.alpha(Theme.accent, 0.20) : ma.containsMouse && !b.flat ? Qt.rgba(1, 1, 1, 0.10) : "transparent"
+        color: b.active ? Qt.rgba(1, 1, 1, 0.18) : ma.containsMouse && !b.flat ? Theme.cardHover : "transparent"
         Behavior on color { ColorAnimation { duration: 140 } }
     }
     Row {
@@ -39,8 +37,7 @@ Item {
             height: b.height
             verticalAlignment: Text.AlignVCenter
             text: b.icon
-            color: b.tint
-            Behavior on color { ColorAnimation { duration: 140 } }
+            color: b.color
             font.family: Theme.icons
             font.pixelSize: b.size
         }
@@ -50,19 +47,7 @@ Item {
             height: b.height
             verticalAlignment: Text.AlignVCenter
             text: b.label
-            color: b.tint
-            Behavior on color { ColorAnimation { duration: 140 } }
-            font.family: Theme.font
-            font.pixelSize: 13
-            font.weight: Font.DemiBold
-        }
-        Text {
-            visible: b.sub !== ""
-            anchors.verticalCenter: parent.verticalCenter
-            height: b.height
-            verticalAlignment: Text.AlignVCenter
-            text: b.sub
-            color: Theme.dim
+            color: b.color
             font.family: Theme.font
             font.pixelSize: 12
             font.weight: Font.Medium

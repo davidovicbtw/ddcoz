@@ -68,8 +68,8 @@ PanelWindow {
                 IconBtn { icon: ""; size: 14; active: Ui.launcher; onClicked: Ui.toggleLauncher() }
             }
             Pill {
-                pad: 13
-                spacing: 7
+                pad: 8
+                spacing: 6
                 Repeater {
                     model: Config.workspaces
                     delegate: Item {
@@ -79,13 +79,13 @@ PanelWindow {
                         readonly property var ws: Hyprland.workspaces.values.find(w => w.id === wid)
                         readonly property bool focused: !!Hyprland.focusedWorkspace && Hyprland.focusedWorkspace.id === wid
                         anchors.verticalCenter: parent.verticalCenter
-                        width: focused ? 24 : 8
+                        width: focused ? 20 : 10
                         height: parent.height
                         Behavior on width { NumberAnimation { duration: Theme.dur; easing.type: Easing.OutBack; easing.overshoot: 1.2 } }
                         Rectangle {
                             anchors.centerIn: parent
-                            width: parent.width; height: 8; radius: 4
-                            color: wsd.focused ? Theme.accent : wsd.ws ? Qt.rgba(1, 1, 1, 0.80) : Qt.rgba(1, 1, 1, 0.22)
+                            width: parent.width; height: wsd.focused ? 8 : 6; radius: height / 2
+                            color: wsd.focused ? Theme.accent : wsd.ws ? Qt.rgba(1, 1, 1, 0.75) : Qt.rgba(1, 1, 1, 0.25)
                             Behavior on color { ColorAnimation { duration: 160 } }
                         }
                         MouseArea {
@@ -97,26 +97,16 @@ PanelWindow {
                 }
             }
             Pill {
-                readonly property var tl: Hyprland.activeToplevel
-                readonly property string t: tl ? tl.title : ""
-                readonly property string cls: tl && tl.lastIpcObject && tl.lastIpcObject.class ? tl.lastIpcObject.class : ""
+                readonly property string t: Hyprland.activeToplevel ? Hyprland.activeToplevel.title : ""
                 visible: t !== ""
-                pad: 14
-                spacing: 8
-                Image {
-                    anchors.verticalCenter: parent.verticalCenter
-                    visible: source != ""
-                    width: 16; height: 16
-                    sourceSize: Qt.size(32, 32)
-                    source: parent.parent.cls ? Quickshell.iconPath(parent.parent.cls.toLowerCase(), true) : ""
-                }
+                pad: 12
                 Text {
                     height: parent.height
                     verticalAlignment: Text.AlignVCenter
-                    width: Math.min(implicitWidth, 260)
+                    width: Math.min(implicitWidth, 300)
                     text: parent.parent.t
                     elide: Text.ElideRight
-                    color: Qt.rgba(1, 1, 1, 0.78); font.family: Theme.font; font.pixelSize: 13; font.weight: Font.Medium
+                    color: Theme.dim; font.family: Theme.font; font.pixelSize: 12; font.weight: Font.Medium
                 }
             }
         }
@@ -160,8 +150,8 @@ PanelWindow {
                 id: clockBtn
                 visible: !Sys.recording
                 active: Ui.popup === "clock" && Ui.screenName === win.sname
-                label: Config.seconds ? Qt.formatDateTime(clock.date, Config.clock24 ? "HH:mm:ss" : "h:mm:ss AP") : Qt.formatDateTime(clock.date, Config.clock24 ? "HH:mm" : "h:mm AP")
-                sub: Qt.formatDateTime(clock.date, "ddd d MMM")
+                label: (Config.seconds ? Qt.formatDateTime(clock.date, Config.clock24 ? "HH:mm:ss" : "h:mm:ss AP") : Qt.formatDateTime(clock.date, Config.clock24 ? "HH:mm" : "h:mm AP"))
+                       + "  ·  " + Qt.formatDateTime(clock.date, "ddd d MMM")
                 onClicked: win.pop("clock", clockPill)
             }
         }
@@ -218,14 +208,14 @@ PanelWindow {
                 id: notifPill
                 IconBtn {
                     icon: Notifs.dnd ? "\uf1f6" : "\uf0f3"
-                    size: 13
+                    size: 12
                     label: Notifs.unread > 0 ? String(Notifs.unread) : ""
                     color: Notifs.dnd ? Theme.dim : Theme.fg
                     active: Ui.popup === "notif" && Ui.screenName === win.sname
                     onClicked: win.pop("notif", notifPill)
                     onRightClicked: Notifs.dnd = !Notifs.dnd
                 }
-                IconBtn { icon: "\uf03e"; size: 13; active: Ui.wallpaper; onClicked: Ui.toggleWallpaper() }
+                IconBtn { icon: "\uf03e"; size: 12; active: Ui.wallpaper; onClicked: Ui.toggleWallpaper() }
             }
             Pill {
                 id: statusPill
@@ -256,7 +246,7 @@ PanelWindow {
                     id: batBtn
                     icon: win.batIcon()
                     label: Sys.hasBattery ? Math.round(Sys.percent) + "%" : ""
-                    color: !Sys.hasBattery ? Theme.fg : Sys.charging ? "#8ce99a" : Sys.percent < 15 ? Theme.danger : Theme.fg
+                    color: Sys.hasBattery && !Sys.charging && Sys.percent < 15 ? Theme.danger : Theme.fg
                     active: Ui.popup === "bat" && Ui.screenName === win.sname
                     onClicked: win.pop("bat", statusPill)
                 }
@@ -268,7 +258,7 @@ PanelWindow {
                 IconBtn {
                     id: pwBtn
                     icon: ""
-                    size: 12
+                    size: 11
                     active: Ui.powermenu
                     onClicked: Ui.togglePower()
                 }

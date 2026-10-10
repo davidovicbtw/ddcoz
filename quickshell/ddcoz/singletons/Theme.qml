@@ -16,7 +16,7 @@ Singleton {
     readonly property string font: "Inter"
     readonly property string icons: "JetBrainsMono Nerd Font"
     readonly property int barH: Config.barHeight
-    readonly property int pillH: Config.barHeight - 10
+    readonly property int pillH: Config.barHeight - 8
     readonly property int gap: Config.gap
     readonly property int radius: Config.radius
     readonly property int dur: Config.animations ? 160 : 0
